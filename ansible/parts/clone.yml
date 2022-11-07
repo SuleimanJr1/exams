@@ -1,0 +1,49 @@
+---
+- name: Deploying a laravel app
+  hosts: all
+  become: true
+  become_method: sudo
+  vars:
+    db_user: demoproject
+    db_pass: demoproject
+    db_name: demoproject
+    diretory: suleiman-demo-project
+    app_name: laravel
+
+  tasks: 
+
+    - name: Copy the App to remote server
+      become: false
+      become_user: vagrant
+      ansible.builtin.copy:
+        src: ~/ansible/files/laravel
+        dest: ~/suleiman-demo-project
+        owner: vagrant
+        group: vagrant
+        mode: '0777'
+            
+    - name: Copying the .env file to remote host
+      become: true
+      copy:
+        src: /home/vagrant/ansible/files/.env
+        dest: /home/vagrant/suleiman-demo-project/laravel/.env
+        owner: vagrant
+        group: vagrant
+        mode: 0775
+        remote_src: no
+
+    - name: creating usergroup
+      group: 
+        name: www-data
+        state: present
+ 
+    - name: creating user
+      user: 
+        name: www-data
+        state: present
+
+    - ansible.builtin.user:
+        name: www-data
+        shell: /bin/bash
+        groups: www-data
+        append: yes

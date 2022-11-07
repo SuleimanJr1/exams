@@ -1,0 +1,45 @@
+---
+- name: Deploying a laravel app
+  hosts: all
+  become: true
+  become_method: sudo
+  vars:
+    db_user: demoproject
+    db_pass: demoproject
+    db_name: demoproject
+    diretory: suleiman-demo-project
+    app_name: laravel
+
+  tasks:
+
+    - name: Changing Directory Permissions
+      shell: sudo chmod -R 775 /home/vagrant/suleiman-demo-project/laravel
+
+    - name: Changing Directory Ownership
+      shell: sudo chown -R www-data:www-data /home/vagrant/suleiman-demo-project
+
+    - name: Moving the app to /var/www
+      shell: sudo mv /home/vagrant/suleiman-demo-project /var/www/
+
+    - name: create apache virtualhost for domain
+      copy: 
+        src: /home/vagrant/ansible/files/suleiman-demo-project.conf
+        dest: /etc/apache2/sites-available/suleiman-demo-project.conf
+
+    - name: permission for laravel conf file
+      shell: sudo chmod -R 777 /etc/apache2/sites-available/suleiman-demo-project.conf
+
+    - name: Disable default apache sit
+      command: sudo a2dissite 000-default.conf
+
+    - name: Update a2ensite
+      command: sudo a2ensite suleiman-demo-project.conf
+      
+    - name: Enable the Apache rewrite module
+      command:  sudo a2enmod rewrite
+
+    - name: Restart Apache2
+      service:
+        name: apache2
+        state: restarted
+
